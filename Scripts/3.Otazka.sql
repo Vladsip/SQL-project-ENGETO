@@ -24,11 +24,8 @@ price_with_pct_change AS (
     avg_price_czk,
     prev_price,
     ROUND(
-      CASE 
-        WHEN prev_price = 0 THEN NULL
-        ELSE ((avg_price_czk - prev_price) / prev_price) * 100
-      END
-    , 2) AS yoy_price_pct
+  ((avg_price_czk - prev_price) / NULLIF(prev_price, 0)) * 100,
+  2) AS yoy_price_pct
   FROM price_yoy_change
   WHERE prev_price IS NOT NULL
 )
