@@ -323,54 +323,52 @@ Z grafu lze vidět, že dvě kategorie v tomto období dokonce zlevňovali a to 
 
 ### 4. Existuje rok, ve kterém byl meziroční nárůst cen potravin výrazně vyšší než růst mezd (větší než 10 %)?
 
-Cílem bylo zjistit, zda ceny potravin rostly rychleji než mzdy, a to na základě jejich mediánových meziročních změn. Medián sem se rozhodl použít z důvodu některých silně vybočujích hodnot u navýšení/poklesu cen levných produktů. 
-
+Cílem této analýzy bylo zjistit, zda ceny potravin rostly rychleji než mzdy. Výpočet byl proveden na základě průměrných meziročních změn obou veličin.
 ```
 CREATE OR REPLACE VIEW price_vs_wage_diff AS 
-WITH median_prices AS (
-    SELECT year,
-           PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY avg_price_czk) AS median_price
+WITH avg_prices AS (
+    SELECT 
+        year,
+        AVG(avg_price_czk) AS avg_price
     FROM t_vladimir_sip_project_sql_primary_final
     GROUP BY year
 ),
-median_wages AS (
-    SELECT year,
-           PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY avg_wage_czk) AS median_wage
+avg_wages AS (
+    SELECT 
+        year,
+        AVG(avg_wage_czk) AS avg_wage
     FROM t_vladimir_sip_project_sql_primary_final
     GROUP BY year
 ),
 combined AS (
     SELECT 
         p.year,
-        p.median_price,
-        w.median_wage,
-        LAG(p.median_price) OVER (ORDER BY p.year) AS prev_price,
-        LAG(w.median_wage) OVER (ORDER BY w.year) AS prev_wage
-    FROM median_prices p
-    JOIN median_wages w ON p.year = w.year
+        p.avg_price,
+        w.avg_wage,
+        LAG(p.avg_price) OVER (ORDER BY p.year) AS prev_price,
+        LAG(w.avg_wage) OVER (ORDER BY w.year) AS prev_wage
+    FROM avg_prices p
+    JOIN avg_wages w ON p.year = w.year
 ),
 change_analysis AS (
     SELECT
         year,
-        ROUND(((median_price - prev_price) / prev_price * 100)::NUMERIC, 2) AS yoy_price_pct,
-        ROUND(((median_wage - prev_wage) / prev_wage * 100)::NUMERIC, 2) AS yoy_wage_pct,
-        ROUND((((median_price - prev_price) / prev_price * 100) - ((median_wage - prev_wage) / prev_wage * 100))::NUMERIC, 2) AS price_vs_wage_diff
+        ROUND(((avg_price - prev_price) / prev_price * 100)::NUMERIC, 2) AS yoy_price_pct,
+        ROUND(((avg_wage - prev_wage) / prev_wage * 100)::NUMERIC, 2) AS yoy_wage_pct,
+        ROUND((((avg_price - prev_price) / prev_price * 100) - ((avg_wage - prev_wage) / prev_wage * 100))::NUMERIC, 2) AS price_vs_wage_diff
     FROM combined
     WHERE prev_price IS NOT NULL AND prev_wage IS NOT NULL
       AND prev_price <> 0 AND prev_wage <> 0
 )
 SELECT *
-FROM change_analysis
+FROM change_analysis;
+
 ```
-**median_prices**  
-Výpočet mediánové ceny potravin za každý rok (pomocí ```PERCENTILE_CONT(0.5)```).
+**avg_priceses**  
+Výpočet průměrné ceny potravin za každý rok ```AVG(avg_price_czk) AS avg_price```
 
-0.5 = 50. percentil > medián
-
-```WITHIN GROUP (ORDER BY ...)``` > určuje, podle kterého sloupce se mají hodnoty seřadit
-
-**median_wages**
-Výpočet mediánových mezd za každý rok stejným způsobem.
+**avg_wageses**
+Výpočet průměrných mezd za každý rok stejným způsobem.
 
 **combined**  
 Spojení tabulek a přidání předchozích hodnot (LAG) pro výpočet meziročních změn.
@@ -385,12 +383,31 @@ Výpočet klíčových ukazatelů:
 *price_vs_wage_diff* = rozdíl mezi těmito dvěma hodnotami (pozitivní = ceny rostly rychleji než mzdy)
 
 ## Závěr
-Z výstupní tabulky vyplývá, že rok 2012 je jediný, kdy ceny potravin rostly výrazně rychleji než mzdy, konkrétně o 15,06%.
-Toto je výrazný roydíl v porovnání s ostatními roky, kde růst cen byl buď menší než růst mezd, nebo byl rozdíl jen mírný. 
-Je potřeba mít na vědomí, že toto číslo může být ovlivněno cenovými skoky u levnějších položek, jejichž podíl na celkových výdajích domácností je zanedbatelný. Naproti tomu i malý meziroční růst mezd může znamenat stovky korun navíc měsíčně, a tedy větší reálný vliv na kupní sílu. 
+![price_wage_diff](Obrazky/price_wage_diff.PNG)  
 
-![price_wage_diff](Obrazky/price_wage_diff.PNG)
+Z výstupní tabulky vyplývá, že v žádném roce nebyl rozdíl mezi navýšením cen potravin a navýšením mezd vyšší než 10?. Největší rozdíl byl zaznamenán v roce 2013, kdy průměrná mzda klesla o 1,56 %, zatímco průměrná cena potravin vzrostla o 5,1 %. Je potřeba mít na vědomí, že toto číslo může být ovlivněno cenovými skoky u levnějších položek, jejichž podíl na celkových výdajích domácností je zanedbatelný. Naproti tomu i malý meziroční růst mezd může znamenat stovky korun navíc měsíčně, a tedy větší reálný vliv na kupní sílu. 
 
+![ceny_potravin_2009](Obrazky/Ceny_potravin_2009.png)
+*Sloupcový graf znázorňující meziroční procentuální změny cen potravin v roce 2009 (oproti roku 2008). ChatGPT vygeneroval tento graf s výsledků SQL dotazu.*
+```
+WITH prices_with_lag AS (
+  SELECT
+    product_name,
+    year,
+    AVG(avg_price_czk) AS avg_price,
+    LAG (AVG(avg_price_czk)) OVER (PARTITION BY product_name ORDER BY year) AS prev_price
+  FROM t_vladimir_sip_project_sql_primary_final
+  GROUP BY product_name, year
+)
+SELECT 
+  product_name,
+  avg_price AS price_2009,
+  prev_price AS price_2008,
+  ROUND(((avg_price - prev_price) / prev_price) * 100, 2) AS yoy_price_pct
+FROM prices_with_lag
+WHERE year = 2009 AND prev_price IS NOT NULL
+ORDER BY yoy_price_pct ASC;
+```
 
 ### 5. Má výška HDP vliv na změny ve mzdách a cenách potravin?
 
