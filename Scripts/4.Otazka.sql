@@ -39,39 +39,28 @@ change_analysis AS (
 SELECT *
 FROM change_analysis;
 
-
 SELECT *
-FROM price_vs_wage_diff pvwd 
+ FROM price_vs_wage_diff pvwd 
 
 
 
-WITH prices_2008_2009 AS (
-  SELECT
-    product_name,
-    year,
-    ROUND(AVG(avg_price_czk), 2) AS avg_price
-  FROM t_vladimir_sip_project_sql_primary_final
-  WHERE year IN (2008, 2009)
-  GROUP BY product_name, year
-),
-price_lagged AS (
-  SELECT
-    product_name,
-    year,
-    avg_price,
-    LAG(avg_price) OVER (PARTITION BY product_name ORDER BY year) AS prev_price
-  FROM prices_2008_2009
-),
-price_change_2009 AS (
-  SELECT
-    product_name,
-    avg_price AS price_2009,
-    prev_price AS price_2008,
-    ROUND(((avg_price - prev_price) / prev_price) * 100, 2) AS yoy_price_pct
-  FROM price_lagged
-  WHERE year = 2009 AND prev_price IS NOT NULL
+WITH prices_with_lag AS (
+SELECT 
+    YEAR,
+    product_name ,
+    max(avg_price_czk) AS avg_price,
+    LAG (max(avg_price_czk)) OVER (PARTITION BY product_name ORDER BY year) AS prev_price
+FROM t_vladimir_sip_project_sql_primary_final tvspspf
+GROUP BY YEAR,product_name 
+ORDER BY YEAR,product_name 
 )
-SELECT *
-FROM price_change_2009
-ORDER BY yoy_price_pct ASC; 
+SELECT 
+    YEAR,
+    product_name,
+    avg_price ,
+    prev_price,
+    ROUND(((avg_price-prev_price)/prev_price) *100, 2) AS yoy_price_pct
+FROM prices_with_lag
+WHERE prev_price IS NOT NULL AND YEAR = 2009
+ORDER BY yoy_price_pct 
 
