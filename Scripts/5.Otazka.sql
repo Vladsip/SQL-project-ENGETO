@@ -1,4 +1,4 @@
--- 4.vypocet gdp_growth_pct – meziroční růst HDP v %, wage_growth_pct – meziroční růst mezd v %, price_growth_pct - meziroční růst cen potravin v %
+-- 5.vypocet gdp_growth_pct – meziroční růst HDP v %, wage_growth_pct – meziroční růst mezd v %, price_growth_pct - meziroční růst cen potravin v %
 CREATE OR REPLACE VIEW v_gdp_price_wage AS 
 WITH gdp_cte AS (
     SELECT 
@@ -8,15 +8,15 @@ WITH gdp_cte AS (
         LAG(gdp) OVER (ORDER BY year) AS prev_gdp
     FROM t_vladimir_sip_project_SQL_secondary_final tf
 ),
-median_prices AS (
+avg_prices AS (
     SELECT year,
-           PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY avg_price_czk) AS median_price
+           ROUND(AVG(avg_price_czk), 2) AS avg_price
     FROM t_vladimir_sip_project_sql_primary_final
     GROUP BY year
 ),
-median_wages AS (
+avg_wages AS (
     SELECT year,
-           PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY avg_wage_czk) AS median_wage
+           ROUND(AVG(avg_wage_czk), 2) AS avg_wage
     FROM t_vladimir_sip_project_sql_primary_final
     GROUP BY YEAR
 ),
@@ -26,27 +26,26 @@ combined AS (
         g.YEAR,
         g.gdp,
         g.prev_gdp,
-        mp.median_price,
-        LAG (mp.median_price) OVER (ORDER BY g.year) AS prev_price,
-        mw.median_wage,
-        LAG (mw.median_wage) OVER (ORDER BY g.year) AS prev_wage
+        ap.avg_price,
+        LAG(ap.avg_price) OVER (ORDER BY g.year) AS prev_price,
+        aw.avg_wage,
+        LAG(aw.avg_wage) OVER (ORDER BY g.year) AS prev_wage
     FROM gdp_cte g
-LEFT JOIN median_prices mp ON g.YEAR = mp.YEAR
-LEFT JOIN median_wages mw ON g.YEAR = mw.year
+LEFT JOIN avg_prices ap ON g.YEAR = ap.YEAR
+LEFT JOIN avg_wages aw ON g.YEAR = aw.year
 )
 SELECT 
-        country,
-        YEAR,
-        gdp,
-        ROUND(((gdp-prev_gdp)/prev_gdp)::NUMERIC *100, 2) AS yoy_gdp_pct,
-        ROUND(((median_price-prev_price)/prev_price)::NUMERIC *100, 2) AS yoy_price_pct, 
-        ROUND(((median_wage-prev_wage)/prev_wage)::NUMERIC *100, 2) AS yoy_wage_pct
+    country,
+    YEAR,
+    gdp,
+    ROUND(((gdp - prev_gdp) / prev_gdp * 100)::NUMERIC, 2) AS yoy_gdp_pct,
+    ROUND(((avg_price - prev_price) / prev_price * 100)::NUMERIC, 2) AS yoy_price_pct,
+    ROUND(((avg_wage - prev_wage) / prev_wage * 100)::NUMERIC, 2) AS yoy_wage_pct
 FROM combined
-ORDER BY YEAR; 
+ORDER BY YEAR;
 
 SELECT *
 FROM v_gdp_price_wage vgpw 
-
 
 /*5. Má výška HDP vliv na změny ve mzdách a cenách potravin?
 
@@ -87,7 +86,15 @@ SELECT
 FROM prices_with_lag
 WHERE year = 2012 AND prev_price IS NOT NULL
 ORDER BY yoy_price_pct DESC
-LIMIT 10;
+
+
+
+
+    YEAR,
+    avg(yoy_price_pct) AS avg_yoy_price_pct
+FROM yoy_price_pct 
+GROUP BY year
+
 
 /*
  * Proč vejce v roce 2012 zdražila o více než 50 %?

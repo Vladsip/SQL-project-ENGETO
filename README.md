@@ -8,7 +8,6 @@ Tento projekt se zaměřuje na datovou analýzu vývoje průměrných mezd, cen 
 4. Existuje rok, ve kterém byl meziroční nárůst cen potravin výrazně vyšší než růst mezd (větší než 10 %)?  
 5. Má výška HDP vliv na změny ve mzdách a cenách potravin? Neboli, pokud HDP vzroste výrazněji v jednom roce, projeví se to na cenách potravin či mzdách ve stejném nebo následujícím roce výraznějším růstem?*
 
-Součástí analýzy bylo vytváření agregačních přehledů, výpočty meziročních změn, použití funkcí jako LAG, PERCENTILE_CONT pro výpočet mediánu, práce s CTE a pohledy (views). 
 
 SQL scripty s dotazy zde [SQL_Scripts](./Scripts)
 
@@ -295,7 +294,7 @@ FROM avg_yoy_price_pct aypp
 - ```ORDER BY year``` zajišťuje časové řazení.
 
 **price_with_pct_change**
--  Spočítá meziroční procentuální změnu ceny (yoy_price_pct) pro každý produkt. Ošetříl jsem výpočet proti dělení nulou pomocí funkce ```NULLIF(prev_price, 0)```: Pokud je prev_price = 0, vrať NULL. Jinak vrať prev_price.
+-  Výpočet meziroční procentuální změny ceny (yoy_price_pct) pro každý produkt. Ošetříl jsem výpočet proti dělení nulou pomocí funkce ```NULLIF(prev_price, 0)```: Pokud je prev_price = 0, vrať NULL. Jinak vrať prev_price.
  
 
 Výpočet průměrného meziročního růstu ceny za každý produkt:
@@ -319,7 +318,8 @@ Z grafu lze vidět, že dvě kategorie v tomto období dokonce zlevňovali a to 
 
 - Zrušení cukerných kvót v EU (2017) vedlo k růstu produkce a tlaku na pokles cen.
 - Nadprodukce na světovém trhu (např. Brazílie, Indie) snižovala ceny surového cukru globálně.
-- Dovoz levnějšího cukru po vstupu ČR do EU zvýšil konkurenci a srazil ceny.
+- Dovoz levnějšího cukru po vstupu ČR do EU zvýšil konkurenci a srazil ceny.  
+*Informace o vývoji cen cukru vygeneroval ChatGPT*
 
 ### 4. Existuje rok, ve kterém byl meziroční nárůst cen potravin výrazně vyšší než růst mezd (větší než 10 %)?
 
