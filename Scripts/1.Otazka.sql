@@ -66,30 +66,11 @@ FROM yoy
 WHERE prev_wage IS NOT NULL
 ORDER BY industry_name, year;
 
+SELECT *
+FROM v_yoy_wage_change vywc 
+
 -- Odpoved na otazku 1. 
 SELECT *
 FROM v_yoy_wage_change 
 WHERE change_label = 'Decreased'
 
-/*
- * 🧠 Otázka 1:
-
-Rostou v průběhu let mzdy ve všech odvětvích, nebo v některých klesají?
-
-
-
-Na základě analýzy meziroční změny průměrných mezd podle jednotlivých odvětví je zřejmé, že:
-
-- Mzdy ve všech odvětvích nerostou neustále. V některých sektorech došlo v určitých letech k poklesu.
-
-Z dostupných dat vyplývá, že během sledovaného období (zejména mezi lety 2009–2013) došlo u většiny odvětví alespoň v jednom roce k meziročnímu poklesu průměrné mzdy.
-Tento vývoj naznačuje, že i přes celkový dlouhodobý trend růstu mezd, mohou nastat krátkodobé výkyvy – například v období ekonomické recese.
-
-Příklady poklesů:
-
-Peněžnictví a pojišťovnictví: −8,83 % (2013)
-
-Výroba a rozvod elektřiny, plynu, tepla: −4,44 % (2013)
-
-Stavebnictví: −2,06 % (2013)
-*/

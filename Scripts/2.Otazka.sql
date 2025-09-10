@@ -28,12 +28,3 @@ GROUP BY f.product_name, f.year;
 SELECT *
 FROM quantity_affordable 
 
-/*
-Na základě průměrných mezd a cen produktů ve společných letech bylo spočítáno, kolik jednotek mléka a chleba bylo možné si koupit 
-za jednu měsíční mzdu:
-
-Shrnutí:
-Kupní síla se mírně zlepšila u obou produktů mezi roky 2006 a 2018.
-
-I přes růst cen produktů vzrostly mzdy natolik, že si lidé mohou dovolit více litrů mléka a více kilogramů chleba než dříve.
-*/

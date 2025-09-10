@@ -46,16 +46,4 @@ FROM avg_yoy_price_pct
 GROUP BY product_name
 ORDER BY avg_yoy_price_pct ASC;
 
-/*
-Na základě výpočtu průměrného meziročního růstu cen jednotlivých potravin za dostupné roky (2006–2018) 
-lze určit, které potraviny zdražují nejpomaleji.
-Nejpomaleji zdražující potravinou byl „Cukr krystalový“, jehož cena meziročně dokonce mírně klesala o −1,88 %.
-Další potraviny s velmi nízkým růstem cen byly například rajská jablka a banány. 
-Pokles cen cukru mezi lety 2006 a 2018 je ekonomicky vysvětlitelný:
-
--Zrušení cukerných kvót v EU (2017) vedlo k růstu produkce a tlaku na pokles cen.
-
--Nadprodukce na světovém trhu (např. Brazílie, Indie) snižovala ceny surového cukru globálně.
-
--Dovoz levnějšího cukru po vstupu ČR do EU zvýšil konkurenci a srazil ceny.
-*/
+/
