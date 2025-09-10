@@ -42,7 +42,7 @@ FROM change_analysis;
 SELECT *
  FROM price_vs_wage_diff pvwd 
 
-
+--Nahled do roku 2009
 
 WITH prices_with_lag AS (
 SELECT 
